@@ -1,50 +1,43 @@
 ---
 name: "HW5: Bigfoot Sighting Reports"
 tools: [Python, Altair, vega-lite]
-description: Two Altair + vega-lite visualizations of BFRO Bigfoot sighting reports, with a linked year brush and a class dropdown.
+description: Two plots of the BFRO bigfoot sighting reports made with Altair and vega-lite.
+custom_js:
+  - vega.min
+  - vega-lite.min
+  - vega-embed.min
+  - justcharts
 ---
 
-<!-- vega libraries matching the Altair 6 / vega-lite v6 specs exported in the notebook -->
-<script src="https://cdn.jsdelivr.net/npm/vega@6"></script>
-<script src="https://cdn.jsdelivr.net/npm/vega-lite@6"></script>
-<script src="https://cdn.jsdelivr.net/npm/vega-embed@7"></script>
+# Bigfoot Sighting Reports
 
-<style>
-  .vis { margin: 1.5em 0; overflow-x: auto; }
-</style>
+For this homework I used the BFRO bigfoot reports dataset. It has 4,747 reports from 49 states. Each report has a date, a season, a state and a class. Class A means the person clearly saw something, Class B means they heard or found something but did not get a clear look, and Class C means the story came from someone else.
 
-# Bigfoot Sighting Reports (BFRO)
+## Plot 1: Reports per year and by season
 
+<vegachart schema-url="{{ site.baseurl }}/assets/json/bigfoot_timeline_seasons.json" style="width: 100%"></vegachart>
 
-Raymond Lu, IS 445 Data Visualization, Homework 5
+The top chart shows how many reports there were each year from 1950 to 2018. Each line is one class of report. Reports were low until the 1970s, jumped up after 2000 and peaked in the mid 2000s, and then went down again. The bottom chart shows the number of reports in each season. At first it shows all years, and summer has the most reports.
 
-This page shows two Python + Altair visualizations of the Bigfoot Field Researchers Organization (BFRO) sighting reports dataset (4,747 reports across 49 US states). The plots were built in a Python notebook and exported to vega-lite JSON, which is rendered here with vega-embed. Links to the data and the notebook are at the bottom of the page.
+For the top chart, year is on the x axis and the number of reports is on the y axis. Both are quantitative. I used a line mark because it makes the trend over time easy to follow. In the bottom chart, season is nominal and goes on the x axis in calendar order, and the bar height is the number of reports. In both charts I colored by report class. Class is a nominal variable, so I used Altair's default categorical color scheme. It gives each class a very different color, which is what you want for categories that have no order. I used the same colors in both charts so one legend works for the whole figure. Class C is hard to see because it only has 30 reports.
 
-## Plot 1: Reports over time, linked to a breakdown by season
+In my notebook I read the CSV from its GitHub URL and changed the date column into pandas dates so I could get the year. About 950 reports have no date, so I left them out of this plot. I also removed reports where the season is "Unknown" and only kept years from 1950 on, because before that there are only a few reports. Then I used groupby to count the reports for each year, season and class. Altair adds these counts up in the charts.
 
-<div id="vis1" class="vis"></div>
+## Plot 2: Reports by state and season
 
-**What is shown.** The top chart shows how many Bigfoot reports were filed for sightings in each year from 1950 to 2018, split by BFRO's report class. Class A reports are clear sightings where the witness says they saw the animal; Class B reports are less certain encounters such as sounds, footprints or a sighting at a distance; Class C reports are second-hand stories (only 30 in the whole dataset, so that line stays near zero). The bottom chart counts the reports in each season for whichever years are selected in the top chart. With nothing selected it shows all years, and summer clearly has the most reports, followed by fall.
+<vegachart schema-url="{{ site.baseurl }}/assets/json/bigfoot_state_season_heatmap.json" style="width: 100%"></vegachart>
 
-**Encodings and color.** In the top chart, year is a quantitative variable on the x-axis (position), the number of reports is a quantitative variable on the y-axis (position), and the line mark connects the years so the trend is easy to follow. In the bottom chart, season is a nominal variable on the x-axis (kept in calendar order: spring, summer, fall, winter) and the bar length encodes the number of reports. Both charts use color for report class. Report class is a nominal (categorical) variable, so I used a qualitative color scheme with three clearly different hues (orange for Class A, green for Class B, purple for Class C) taken from the ColorBrewer "Dark2" palette. A sequential or diverging scheme would wrongly suggest that the classes have an order or a midpoint. These three hues also differ in lightness, so they generally stay distinguishable for readers with common forms of color-vision deficiency, and the same colors are used in both charts so the legend applies to the whole figure.
+This heatmap shows the 20 states with the most reports and how many reports each state has in each season. The states are sorted so the ones with the most reports are at the top. Washington has the most reports, and most states have the most reports in summer. Some states are different. For example, Illinois has more reports in fall than in summer.
 
-**Data transformations.** In the notebook I read the CSV from its GitHub URL, converted the `date` column to pandas timestamps and extracted the year. About 950 reports have no usable date, so they are left out of this plot. I kept years 1950 to 2018, because before 1950 there are only a handful of reports per decade, which would stretch the axis without adding information. I also dropped the 91 reports with an "Unknown" season. Finally, I grouped the reports by year, season and class and counted them, which reduces the remaining reports to a 451-row summary table; Altair then sums those counts for each chart. This keeps the exported JSON small and makes the page load quickly.
+Season is on the x axis and state is on the y axis. Both are categories. The number of reports is shown with color. Since the count only goes from low to high, I used a sequential color scheme called "orangered". Light colors mean few reports and dark red means many reports. I did not use a diverging scheme because there is no middle value that matters here.
 
-## Plot 2: Which states report the most sightings, and in which season
-
-<div id="vis2" class="vis"></div>
-
-**What is shown.** This heatmap shows the 20 states with the most reports (rows) and the number of reports in each season (columns). States are sorted from most to fewest reports, so Washington, California and Florida sit at the top. The number in each cell gives the exact count. The pattern from Plot 1 holds in most states (summer is the busiest season), but there are exceptions: Florida's reports are spread much more evenly across the four seasons than in other states, and Illinois has more fall reports than summer reports.
-
-**Encodings and color.** Season is mapped to the x-axis and state to the y-axis (both categorical, position encodings), and the number of reports is encoded with color in each rectangle. The count is a quantitative variable that only goes from low to high, so I used the sequential "yellow-orange-brown" color scheme: light yellow means few reports and dark brown means many. A sequential scheme fits because there is no meaningful midpoint (a diverging scheme would be misleading) and the change in lightness is easy to read even in grayscale. Because it is hard to compare exact values from color alone, I also added text labels with the count; the label switches from black to white on the darkest cells so it stays readable.
-
-**Data transformations.** I removed reports with an "Unknown" season, counted reports per state, and kept the 20 states with the most reports (the remaining states have too few reports for a readable heatmap). I then counted reports by state, season and class in pandas. Inside the chart, a filter keeps only the class chosen in the dropdown and an aggregate sums the counts per state and season, so the colors and labels always match the current selection.
+In the notebook I removed reports with an "Unknown" season and found the 20 states with the most reports. Then I used groupby to count reports for each state, season and class.
 
 ## Interactivity
 
-Plot 1 is the main interactive figure. Clicking and dragging across the top chart creates an interval selection over a range of years, and the bottom chart immediately updates to show the season breakdown for only those years (drag the shaded box to move it, double-click to clear it). This lets a reader ask questions the static chart cannot answer, for example whether the big rise in reports after 2000 was concentrated in one season, or whether the summer peak was already there in the 1970s. Clicking a class in the legend highlights that class in both charts and fades the others (shift-click to add classes), which makes it easier to follow one class where the Class A and Class B lines cross. Hovering over any point or bar shows a tooltip with the exact year, class and count.
+The first plot has a brush. You can click and drag on the top chart to pick a range of years, and the bar chart below will only count reports from those years. Double-click to clear it. This makes the plot more useful because you can check if the season pattern changes over time. For example, you can see if the summer peak was already there in the 1970s or if it only showed up after 2000.
 
-Plot 2 adds a dropdown menu ("Report class") that filters the heatmap to all reports, Class A only, Class B only or Class C only. This makes it possible to check whether a state's high count comes mostly from clear sightings or from less certain Class B encounters, without needing a separate heatmap for each class. Tooltips show the state, season and count for each cell.
+The second plot has a dropdown menu. You can pick All, Class A, Class B or Class C, and the heatmap will only show that class. This lets you check if a state has a lot of clear sightings or mostly less sure ones, without making a separate heatmap for each class. You can also hover over a box to see the exact number of reports.
 
 ## The Data and The Analysis
 
@@ -55,11 +48,3 @@ Plot 2 adds a dropdown menu ("Report class") that filters the heatmap to all rep
 <div class="right">
 {% include elements/button.html link="https://github.com/rl38-lab/rl38-lab.github.io/blob/main/python_notebooks/hw5_bigfoot.ipynb" text="The Analysis" %}
 </div>
-
-<script>
-  (function () {
-    var opts = { actions: false };
-    vegaEmbed('#vis1', '{{ site.baseurl }}/assets/json/bigfoot_timeline_seasons.json', opts).catch(console.error);
-    vegaEmbed('#vis2', '{{ site.baseurl }}/assets/json/bigfoot_state_season_heatmap.json', opts).catch(console.error);
-  })();
-</script>
